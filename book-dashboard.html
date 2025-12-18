@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Book Reservation Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:sans-serif;background:#ffe5b4;display:flex;flex-direction:column;min-height:100vh;transition:background 0.3s,color 0.3s;}
+body.night-mode{background:#121212;color:#e0e0e0;}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:white;border-bottom:2px solid #000;transition:background 0.3s,color 0.3s;}
+body.night-mode header{background:#1e1e1e;border-color:#333;color:#e0e0e0;}
+header h1{font-size:28px;}
+.header-controls{display:flex;align-items:center;gap:10px;position:relative;}
+.search-box,.category-select,.sort-select{padding:6px 12px;border-radius:6px;border:1px solid #ccc;outline:none;font-size:14px;transition:background 0.3s,color 0.3s;}
+body.night-mode .search-box, body.night-mode .category-select, body.night-mode .sort-select{background:#333;color:#e0e0e0;border-color:#555;}
+.book-grid{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;padding:20px;}
+.book-card{background:white;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center;overflow:hidden;display:flex;flex-direction:column;position:relative;transition:background 0.3s,color 0.3s;}
+body.night-mode .book-card{background:#1e1e1e;color:#e0e0e0;box-shadow:0 4px 12px rgba(0,0,0,0.5);}
+.book-card img{width:100%;height:220px;object-fit:cover;border-radius:6px 6px 0 0;}
+.book-card h3{margin:10px 0 5px;}
+.reserve-btn,.fav-btn{margin:5px 10px;padding:6px;border:none;border-radius:5px;cursor:pointer;}
+.reserve-btn{background:#28a745;color:white;}
+.fav-btn{background:#ffdd00;color:#000;}
+.rate-stars span{font-size:18px;cursor:pointer;color:#ccc;}
+.rate-stars span.active{color:gold;}
+.reserved-badge{position:absolute;top:10px;left:10px;background:#ff6347;color:white;padding:4px 8px;font-size:12px;border-radius:5px;font-weight:bold;}
+footer{background:white;padding:15px 20px;border-top:2px solid #000;text-align:left;transition:background 0.3s,color 0.3s;}
+body.night-mode footer{background:#1e1e1e;border-color:#333;color:#e0e0e0;}
+.options-dropdown{position:relative;}
+.options-btn{padding:6px 12px;border:none;background:#004c91;color:white;border-radius:6px;cursor:pointer;}
+body.night-mode .options-btn{background:#0066cc;color:white;}
+.dropdown-content{display:none;position:absolute;right:0;top:40px;background:white,min-width:180px;border:1px solid #ccc;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10;transition:background 0.3s,color 0.3s;}
+body.night-mode .dropdown-content{background:#1e1e1e;border-color:#333;color:#e0e0e0;}
+.dropdown-content a{display:block;padding:10px 12px;text-decoration:none;color:#004c91;transition:background 0.3s,color 0.3s;}
+body.night-mode .dropdown-content a{color:#e0e0e0;}
+.dropdown-content a:hover{background:#f0f0f0;}
+body.night-mode .dropdown-content a:hover{background:#333;}
+</style>
+</head>
+<body>
+
+<header>
+<h1>📚 Book Reservation</h1>
+<div class="header-controls">
+<input type="text" id="searchInput" class="search-box" placeholder="Search books...">
+<select id="categoryFilter" class="category-select"><option value="">All Categories</option></select>
+<select id="sortSelect" class="sort-select">
+<option value="">Sort By</option>
+<option value="title">Title (A-Z)</option>
+<option value="author">Author (A-Z)</option>
+</select>
+
+<!-- Night mode toggle -->
+<button onclick="toggleNightMode()" class="options-btn">🌙 Night Mode</button>
+
+<!-- Options dropdown -->
+<div class="options-dropdown">
+<button class="options-btn" onclick="toggleDropdown()">Options ▼</button>
+<div class="dropdown-content" id="dropdownContent">
+<a href="view-profile.html">View Profile</a>
+<a href="edit-profile.html">Edit Profile</a>
+<a href="view-reservations.html">View Reservations</a>
+<a href="#" onclick="logout()">Logout</a>
+</div>
+</div>
+
+<button onclick="addBook()">➕ Add Book</button>
+</div>
+</header>
+
+<div class="book-grid" id="bookGrid"></div>
+
+<footer>
+<p>📧 Email: example@email.com</p>
+<p>📞 Contact: 099801302</p>
+<p>🏢 Company: BookWorm</p>
+</footer>
+
+<script>
+// Dropdown toggle
+function toggleDropdown(){
+const dropdown=document.getElementById("dropdownContent");
+dropdown.style.display = dropdown.style.display==="block" ? "none" : "block";
+}
+window.onclick = function(event){
+if(!event.target.matches('.options-btn')){
+document.getElementById("dropdownContent").style.display="none";
+}
+}
+
+// Night mode
+function toggleNightMode(){
+document.body.classList.toggle("night-mode");
+}
+
+// Mock user
+let loggedUser = JSON.parse(localStorage.getItem("loggedUser")) || { username:"Guest", firstName:"Guest" };
+let username = loggedUser.username;
+
+// Books
+let books = JSON.parse(localStorage.getItem("allBooks")) || [
+{title:"Harry Potter",author:"J.K. Rowling",category:"Fiction",img:"https://covers.openlibrary.org/b/isbn/9780590353427-L.jpg",qty:5},
+{title:"1984",author:"George Orwell",category:"Mystery",img:"https://covers.openlibrary.org/b/isbn/9780451524935-L.jpg",qty:3},
+{title:"Moby Dick",author:"Herman Melville",category:"Science",img:"https://covers.openlibrary.org/b/isbn/9781503280786-L.jpg",qty:2}
+];
+localStorage.setItem("allBooks", JSON.stringify(books));
+
+// User data
+let reservations = JSON.parse(localStorage.getItem("reservations_"+username)) || [];
+let favorites = JSON.parse(localStorage.getItem("favorites_"+username)) || [];
+let ratings = JSON.parse(localStorage.getItem("ratings_"+username)) || {};
+
+// Save books
+function saveBooks(){ localStorage.setItem("allBooks", JSON.stringify(books)); }
+
+// Render books
+function renderBooks(){
+const grid=document.getElementById("bookGrid");
+const search=document.getElementById("searchInput").value.toLowerCase();
+const category=document.getElementById("categoryFilter").value;
+const sort=document.getElementById("sortSelect").value;
+let filtered=books.filter(b=>(b.title.toLowerCase().includes(search)||b.author.toLowerCase().includes(search))&&(!category||b.category===category));
+updateCategories();
+if(sort==="title") filtered.sort((a,b)=>a.title.localeCompare(b.title));
+if(sort==="author") filtered.sort((a,b)=>a.author.localeCompare(b.author));
+grid.innerHTML="";
+filtered.forEach((b,i)=>{
+const reserved = reservations.find(r=>r.title===b.title);
+const fav = favorites.includes(b.title);
+const rate = ratings[b.title] || 0;
+grid.innerHTML+=`
+<div class="book-card">
+${reserved?'<div class="reserved-badge">Reserved</div>':''}
+<img src="${b.img}">
+<h3>${b.title}</h3>
+<p>By ${b.author}</p>
+<p>Category: ${b.category}</p>
+<p>Quantity: ${b.qty}</p>
+<div class="rate-stars">${[1,2,3,4,5].map(n=>`<span onclick="rateBook('${b.title}',${n})" class="${rate>=n?'active':''}">★</span>`).join('')}</div>
+<button class="reserve-btn" onclick="reserveBook(${i})">${reserved?"Remove":"Reserve"}</button>
+<button class="fav-btn" onclick="toggleFavorite('${b.title}')">${fav?"★ Favorited":"☆ Favorite"}</button>
+</div>`;
+});
+}
+
+// Categories
+function updateCategories(){
+const select=document.getElementById("categoryFilter");
+const search=document.getElementById("searchInput").value.toLowerCase();
+const categories=[...new Set(books.filter(b=>b.title.toLowerCase().includes(search)||b.author.toLowerCase().includes(search)).map(b=>b.category))];
+const current=select.value;
+select.innerHTML='<option value="">All Categories</option>';
+categories.forEach(c=>{const option=document.createElement("option");option.value=c;option.textContent=c;select.appendChild(option);});
+if(current && categories.includes(current)) select.value=current;
+}
+
+// Book functions
+function addBook(){
+const title=prompt("Enter book title:");
+const author=prompt("Enter author:");
+const category=prompt("Enter category:");
+const img=prompt("Enter image URL:");
+const qty=parseInt(prompt("Enter quantity:"),10)||1;
+if(title && author && category && img){ books.push({title,author,category,img,qty}); saveBooks(); renderBooks(); alert(`Book "${title}" added!`); }
+else alert("Book not added. All fields are required!");
+}
+function reserveBook(index){
+const book=books[index];
+const existing=reservations.find(r=>r.title===book.title);
+if(existing){ reservations=reservations.filter(r=>r.title!==book.title); book.qty++; alert(`Removed reservation for "${book.title}".`); }
+else if(book.qty>0){ reservations.push(book); book.qty--; alert(`Reserved "${book.title}".`); }
+else alert(`"${book.title}" is out of stock!`);
+localStorage.setItem(`reservations_${username}`, JSON.stringify(reservations)); saveBooks(); renderBooks();
+}
+function toggleFavorite(title){ if(favorites.includes(title)) favorites=favorites.filter(t=>t!==title); else favorites.push(title); localStorage.setItem(`favorites_${username}`, JSON.stringify(favorites)); renderBooks(); }
+function rateBook(title,n){ ratings[title]=n; localStorage.setItem(`ratings_${username}`, JSON.stringify(ratings)); renderBooks(); }
+function logout(){ localStorage.removeItem("loggedUser"); window.location.href="index.html"; }
+
+// Search & Filter
+document.getElementById("searchInput").addEventListener("input", renderBooks);
+document.getElementById("categoryFilter").addEventListener("change", renderBooks);
+document.getElementById("sortSelect").addEventListener("change", renderBooks);
+
+renderBooks();
+</script>
+</body>
+</html>

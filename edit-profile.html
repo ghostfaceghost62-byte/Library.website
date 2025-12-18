@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Profile</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+<h2>Edit Profile</h2>
+<button onclick="toggleNightMode()" class="options-btn">🌙 Night Mode</button>
+</header>
+
+<div class="card">
+<form id="editProfileForm">
+  <label>First Name</label>
+  <input type="text" id="firstName" required>
+  
+  <label>Last Name</label>
+  <input type="text" id="lastName" required>
+  
+  <label>Email</label>
+  <input type="email" id="email" required>
+  
+  <label>Birthdate</label>
+  <input type="date" id="birthdate" required>
+  
+  <button type="submit" class="submit-btn">Save Changes</button>
+  <div id="saveMessage" style="margin-top:10px;"></div>
+</form>
+</div>
+
+<nav>
+<a href="book-dashboard.html">⬅ Back to Dashboard</a>
+<a href="view-profile.html">👤 View Profile</a>
+<a href="view-reservations.html">📚 View Reservations</a>
+</nav>
+
+<script>
+// Load user data
+let loggedUser = JSON.parse(localStorage.getItem("loggedUser")) || { firstName:"Guest", lastName:"N/A", email:"none@example.com", birthdate:"N/A" };
+document.getElementById("firstName").value = loggedUser.firstName;
+document.getElementById("lastName").value = loggedUser.lastName;
+document.getElementById("email").value = loggedUser.email;
+document.getElementById("birthdate").value = loggedUser.birthdate;
+
+// Save edits
+document.getElementById("editProfileForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  loggedUser.firstName = document.getElementById("firstName").value;
+  loggedUser.lastName = document.getElementById("lastName").value;
+  loggedUser.email = document.getElementById("email").value;
+  loggedUser.birthdate = document.getElementById("birthdate").value;
+  localStorage.setItem("loggedUser", JSON.stringify(loggedUser));
+  document.getElementById("saveMessage").textContent = "✅ Profile updated!";
+});
+</script>
+
+<script>
+if(localStorage.getItem("nightMode") === "enabled") document.body.classList.add("night-mode");
+function toggleNightMode() {
+  document.body.classList.toggle("night-mode");
+  if(document.body.classList.contains("night-mode")) localStorage.setItem("nightMode","enabled");
+  else localStorage.setItem("nightMode","disabled");
+}
+</script>
+
+</body>
+</html>

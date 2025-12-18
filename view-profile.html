@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>View Profile</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+<h2>View Profile</h2>
+<button onclick="toggleNightMode()" class="options-btn">🌙 Night Mode</button>
+</header>
+
+<div class="card">
+<p><b>Username:</b> <span id="username">Loading...</span></p>
+<p><b>First Name:</b> <span id="firstName">Loading...</span></p>
+<p><b>Last Name:</b> <span id="lastName">Loading...</span></p>
+<p><b>Email:</b> <span id="email">Loading...</span></p>
+<p><b>Birthdate:</b> <span id="birthdate">Loading...</span></p>
+</div>
+
+<nav>
+<a href="book-dashboard.html">⬅ Back to Dashboard</a>
+<a href="edit-profile.html">✏ Edit Profile</a>
+<a href="view-reservations.html">📚 View Reservations</a>
+</nav>
+
+<script>
+// Load user data
+let loggedUser = JSON.parse(localStorage.getItem("loggedUser")) || { username:"Guest", firstName:"Guest", lastName:"N/A", email:"none@example.com", birthdate:"N/A" };
+document.getElementById("username").textContent = loggedUser.username;
+document.getElementById("firstName").textContent = loggedUser.firstName;
+document.getElementById("lastName").textContent = loggedUser.lastName || "N/A";
+document.getElementById("email").textContent = loggedUser.email || "none@example.com";
+document.getElementById("birthdate").textContent = loggedUser.birthdate || "N/A";
+</script>
+
+<script>
+if(localStorage.getItem("nightMode") === "enabled") document.body.classList.add("night-mode");
+function toggleNightMode() {
+  document.body.classList.toggle("night-mode");
+  if(document.body.classList.contains("night-mode")) localStorage.setItem("nightMode","enabled");
+  else localStorage.setItem("nightMode","disabled");
+}
+</script>
+
+</body>
+</html>

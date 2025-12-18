@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Reservations</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+<h2>My Reservations</h2>
+<button onclick="toggleNightMode()" class="options-btn">🌙 Night Mode</button>
+</header>
+
+<div id="reservationsContainer"></div>
+
+<nav>
+<a href="book-dashboard.html">⬅ Back to Dashboard</a>
+<a href="view-profile.html">👤 View Profile</a>
+<a href="edit-profile.html">✏ Edit Profile</a>
+</nav>
+
+<script>
+// Load reservations
+let loggedUser = JSON.parse(localStorage.getItem("loggedUser")) || { username:"Guest" };
+let reservations = JSON.parse(localStorage.getItem(`reservations_${loggedUser.username}`)) || [];
+
+const container = document.getElementById("reservationsContainer");
+if(reservations.length === 0){
+  container.innerHTML = '<div class="card">You have no reservations yet.</div>';
+} else {
+  reservations.forEach(book => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `<p>📚 ${book.title}</p>
+                     <button class="remove-btn" onclick="removeReservation('${book.title}', this)">Remove</button>`;
+    container.appendChild(div);
+  });
+}
+
+function removeReservation(title, btn){
+  reservations = reservations.filter(b => b.title !== title);
+  localStorage.setItem(`reservations_${loggedUser.username}`, JSON.stringify(reservations));
+  btn.parentElement.remove();
+}
+</script>
+
+<script>
+if(localStorage.getItem("nightMode") === "enabled") document.body.classList.add("night-mode");
+function toggleNightMode() {
+  document.body.classList.toggle("night-mode");
+  if(document.body.classList.contains("night-mode")) localStorage.setItem("nightMode","enabled");
+  else localStorage.setItem("nightMode","disabled");
+}
+</script>
+
+</body>
+</html>
